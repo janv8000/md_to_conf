@@ -334,7 +334,7 @@ def get_page(title, soft=False):
         url = '%s,%s' % (url, ','.join("metadata.properties.%s" % v for v in PROPERTIES.keys()))
 
     session = requests.Session()
-    session.auth = (USERNAME, API_KEY)
+    session.headers.update({'Authorization': 'Bearer %s' % (API_KEY)})
 
     response = session.get(url)
 
@@ -533,7 +533,7 @@ def create_page(title, body, ancestors):
     url = '%s/rest/api/content/' % CONFLUENCE_API_URL
 
     session = requests.Session()
-    session.auth = (USERNAME, API_KEY)
+    session.headers.update({'Authorization': 'Bearer %s' % (API_KEY)})
     session.headers.update({'Content-Type': 'application/json'})
 
     new_page = {'type': 'page', \
@@ -604,7 +604,7 @@ def delete_page(page_id):
     url = '%s/rest/api/content/%s' % (CONFLUENCE_API_URL, page_id)
 
     session = requests.Session()
-    session.auth = (USERNAME, API_KEY)
+    session.headers.update({'Authorization': 'Bearer %s' % (API_KEY)})
     session.headers.update({'Content-Type': 'application/json'})
 
     response = session.delete(url)
@@ -640,7 +640,7 @@ def update_page(page_id, title, body, version, ancestors, properties, attachment
     url = '%s/rest/api/content/%s' % (CONFLUENCE_API_URL, page_id)
 
     session = requests.Session()
-    session.auth = (USERNAME, API_KEY)
+    session.headers.update({'Authorization': 'Bearer %s' % (API_KEY)})
     session.headers.update({'Content-Type': 'application/json'})
 
     page_json = { \
@@ -711,7 +711,7 @@ def get_attachment(page_id, filename):
     url = '%s/rest/api/content/%s/child/attachment?filename=%s' % (CONFLUENCE_API_URL, page_id, filename)
 
     session = requests.Session()
-    session.auth = (USERNAME, API_KEY)
+    session.headers.update({'Authorization': 'Bearer %s' % (API_KEY)})
 
     response = session.get(url)
     response.raise_for_status()
@@ -757,7 +757,7 @@ def upload_attachment(page_id, file, comment):
         url = '%s/rest/api/content/%s/child/attachment/' % (CONFLUENCE_API_URL, page_id)
 
     session = requests.Session()
-    session.auth = (USERNAME, API_KEY)
+    session.headers.update({'Authorization': 'Bearer %s' % (API_KEY)})
     session.headers.update({'X-Atlassian-Token': 'no-check'})
 
     LOGGER.info('\tUploading attachment %s...', filename)
