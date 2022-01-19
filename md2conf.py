@@ -614,6 +614,7 @@ def delete_page(page_id):
         LOGGER.debug('Page %s deleted successfully.', page_id)
     else:
         LOGGER.error('Page %s could not be deleted.', page_id)
+        sys.exit(1)
 
 
 def update_page(page_id, title, body, version, ancestors, properties, attachments):
@@ -698,6 +699,7 @@ def update_page(page_id, title, body, version, ancestors, properties, attachment
             webbrowser.open(link)
     else:
         LOGGER.error("Page could not be updated.")
+        sys.exit(1)
 
 
 def get_attachment(page_id, filename):
@@ -743,6 +745,7 @@ def upload_attachment(page_id, file, comment):
 
     if not os.path.isfile(file):
         LOGGER.error('File %s cannot be found --> skip ', file)
+        sys.exit(1)
         return False
 
     file_to_upload = {
