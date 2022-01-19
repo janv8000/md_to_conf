@@ -324,7 +324,7 @@ def get_page(title, soft=False):
     :param title: page tile
     :return: Confluence page info
     """
-    LOGGER.info('\tRetrieving page information: %s, isSoft %s', title, soft)
+    LOGGER.debug('\tRetrieving page information: %s, isSoft %s', title, soft)
     url = '%s/rest/api/content?title=%s&spaceKey=%s&expand=version,ancestors' % (
         CONFLUENCE_API_URL, urllib.parse.quote_plus(title), SPACE_KEY)
 
@@ -342,9 +342,9 @@ def get_page(title, soft=False):
     try:
         response.raise_for_status()
     except requests.RequestException as err:
-        LOGGER.error('err.response: %s', err)
+        LOGGER.info('err.response: %s', err)
         if response.status_code == 404 and soft == True:
-            LOGGER.info('Page %s niet gevonden maar is niet erg', title)
+            LOGGER.debug('Page %s niet gevonden maar is niet erg', title)
             return False
         elif response.status_code == 404:
             LOGGER.error('Error: Page not found. Check the following are correct:')
@@ -364,7 +364,7 @@ def get_page(title, soft=False):
         link = '%s%s' % (CONFLUENCE_API_URL, data[u'results'][0][u'_links'][u'webui'])
 
         try:
-            LOGGER.info(str(data))
+            LOGGER.debug(str(data))
             properties = data[u'results'][0][u'metadata'][u'properties']
 
         except KeyError:
@@ -470,7 +470,7 @@ def add_local_refs(page_id, title, html):
     ref_prefix = ref_prefixes[MARKDOWN_SOURCE]
     ref_postfix = ref_postfixes[MARKDOWN_SOURCE]
 
-    LOGGER.info('Converting confluence local links...')
+    LOGGER.debug('Converting confluence local links...')
 
     headers = re.findall(r'<h\d+>(.*?)</h\d+>', html, re.DOTALL)
     if headers:
@@ -528,7 +528,7 @@ def create_page(title, body, ancestors):
     :param ancestors: confluence page ancestor
     :return:
     """
-    LOGGER.info('Creating page...')
+    LOGGER.debug('Creating page...')
 
     url = '%s/rest/api/content/' % CONFLUENCE_API_URL
 
@@ -571,8 +571,8 @@ def create_page(title, body, ancestors):
         version = data[u'version'][u'number']
         link = '%s%s' % (CONFLUENCE_API_URL, data[u'_links'][u'webui'])
 
-        LOGGER.info('Page created in %s with ID: %s.', space_name, page_id)
-        LOGGER.info('URL: %s', link)
+        LOGGER.debug('Page created in %s with ID: %s.', space_name, page_id)
+        LOGGER.debug('URL: %s', link)
 
         # Populate properties dictionary with initial property values
         properties = {}
@@ -583,7 +583,7 @@ def create_page(title, body, ancestors):
         img_check = re.search('<img(.*?)\/>', body)
         local_ref_check = re.search('<a href="(#.+?)">(.+?)</a>', body)
         if img_check or local_ref_check or properties or ATTACHMENTS or LABELS:
-            LOGGER.info('\tAttachments, local references, content properties or labels found, update procedure called.')
+            LOGGER.debug('\tAttachments, local references, content properties or labels found, update procedure called.')
             update_page(page_id, title, body, version, ancestors, properties, ATTACHMENTS)
         else:
             if GO_TO_PAGE:
@@ -600,7 +600,7 @@ def delete_page(page_id):
     :param page_id: confluence page id
     :return: None
     """
-    LOGGER.info('Deleting page...')
+    LOGGER.debug('Deleting page...')
     url = '%s/rest/api/content/%s' % (CONFLUENCE_API_URL, page_id)
 
     session = requests.Session()
@@ -611,7 +611,7 @@ def delete_page(page_id):
     response.raise_for_status()
 
     if response.status_code == 204:
-        LOGGER.info('Page %s deleted successfully.', page_id)
+        LOGGER.debug('Page %s deleted successfully.', page_id)
     else:
         LOGGER.error('Page %s could not be deleted.', page_id)
 
@@ -628,7 +628,7 @@ def update_page(page_id, title, body, version, ancestors, properties, attachment
     :param attachments: confluence page attachments
     :return: None
     """
-    LOGGER.info('Updating page...')
+    LOGGER.debug('Updating page...')
 
     # Add images and attachments
     body = add_images(page_id, body)
@@ -678,11 +678,11 @@ def update_page(page_id, title, body, version, ancestors, properties, attachment
         data = response.json()
         link = '%s%s' % (CONFLUENCE_API_URL, data[u'_links'][u'webui'])
 
-        LOGGER.info("Page updated successfully.")
-        LOGGER.info('URL: %s', link)
+        LOGGER.debug("Page updated successfully.")
+        LOGGER.debug('URL: %s', link)
 
         if properties:
-            LOGGER.info("Updating page content properties...")
+            LOGGER.debug("Updating page content properties...")
 
             for key in properties:
                 prop_url = '%s/property/%s' % (url, key)
@@ -692,7 +692,7 @@ def update_page(page_id, title, body, version, ancestors, properties, attachment
                 response.raise_for_status()
 
                 if response.status_code == 200:
-                    LOGGER.info("\tUpdated property %s", key)
+                    LOGGER.debug("\tUpdated property %s", key)
 
         if GO_TO_PAGE:
             webbrowser.open(link)
@@ -760,7 +760,7 @@ def upload_attachment(page_id, file, comment):
     session.headers.update({'Authorization': 'Bearer %s' % (API_KEY)})
     session.headers.update({'X-Atlassian-Token': 'no-check'})
 
-    LOGGER.info('\tUploading attachment %s...', filename)
+    LOGGER.debug('\tUploading attachment %s...', filename)
 
     response = session.post(url, files=file_to_upload)
     response.raise_for_status()
@@ -774,18 +774,18 @@ def main():
 
     :return:
     """
-    LOGGER.info('\t\t----------------------------------')
-    LOGGER.info('\t\tMarkdown to Confluence Upload Tool')
-    LOGGER.info('\t\t----------------------------------\n\n')
+    LOGGER.debug('\t\t----------------------------------')
+    LOGGER.debug('\t\tMarkdown to Confluence Upload Tool')
+    LOGGER.debug('\t\t----------------------------------\n\n')
 
-    LOGGER.info('Markdown file:\t%s', MARKDOWN_FILE)
-    LOGGER.info('Space Key:\t%s', SPACE_KEY)
+    LOGGER.debug('Markdown file:\t%s', MARKDOWN_FILE)
+    LOGGER.debug('Space Key:\t%s', SPACE_KEY)
 
     with open(MARKDOWN_FILE, 'r') as mdfile:
         title = mdfile.readline().lstrip('#').strip()
         mdfile.seek(0)
 
-    LOGGER.info('Title:\t\t%s', title)
+    LOGGER.debug('Title:\t\t%s', title)
 
     with codecs.open(MARKDOWN_FILE, 'r', 'utf-8') as mdfile:
         html = markdown.markdown(mdfile.read(), extensions=['markdown.extensions.tables',
@@ -808,7 +808,7 @@ def main():
         LOGGER.info("Simulate mode is active - stop processing here.")
         sys.exit(0)
 
-    LOGGER.info('Checking if Atlas page exists...')
+    LOGGER.debug('Checking if Atlas page exists...')
     page = get_page(title, True)
 
     if DELETE and page:
@@ -839,7 +839,7 @@ def main():
     else:
         create_page(title, html, ancestors)
 
-    LOGGER.info('Markdown Converter completed successfully.')
+    LOGGER.debug('Markdown Converter completed successfully.')
 
 
 if __name__ == "__main__":
