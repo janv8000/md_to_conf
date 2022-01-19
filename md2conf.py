@@ -13,6 +13,7 @@
 import logging
 import sys
 import os
+import io
 import re
 import json
 import collections
@@ -784,13 +785,13 @@ def main():
     LOGGER.debug('Markdown file:\t%s', MARKDOWN_FILE)
     LOGGER.debug('Space Key:\t%s', SPACE_KEY)
 
-    with open(MARKDOWN_FILE, 'r') as mdfile:
-        title = mdfile.readline().lstrip('#').strip()
-        mdfile.seek(0)
+    with open(MARKDOWN_FILE, 'r', encoding='cp1252') as mdfileTitle:
+        title = mdfileTitle.readline().lstrip('#').strip()
+        mdfileTitle.seek(0)
 
     LOGGER.debug('Title:\t\t%s', title)
 
-    with codecs.open(MARKDOWN_FILE, 'r', 'utf-8') as mdfile:
+    with io.open(MARKDOWN_FILE, 'r', encoding='cp1252') as mdfile:
         html = markdown.markdown(mdfile.read(), extensions=['markdown.extensions.tables',
                                                        'markdown.extensions.fenced_code'])
 
