@@ -317,14 +317,14 @@ def process_refs(html):
     return html
 
 
-def get_page(title):
+def get_page(title, soft=False):
     """
      Retrieve page details by title
 
     :param title: page tile
     :return: Confluence page info
     """
-    LOGGER.info('\tRetrieving page information: %s', title)
+    LOGGER.info('\tRetrieving page information: %s, isSoft %s', title, soft)
     url = '%s/rest/api/content?title=%s&spaceKey=%s&expand=version,ancestors' % (
         CONFLUENCE_API_URL, urllib.parse.quote_plus(title), SPACE_KEY)
 
@@ -343,7 +343,10 @@ def get_page(title):
         response.raise_for_status()
     except requests.RequestException as err:
         LOGGER.error('err.response: %s', err)
-        if response.status_code == 404:
+        if response.status_code == 404 and soft == True:
+            LOGGER.info('Page %s niet gevonden maar is niet erg', title)
+            return False
+        elif response.status_code == 404:
             LOGGER.error('Error: Page not found. Check the following are correct:')
             LOGGER.error('\tSpace Key : %s', SPACE_KEY)
             LOGGER.error('\tOrganisation Name: %s', ORGNAME)
@@ -806,7 +809,7 @@ def main():
         sys.exit(0)
 
     LOGGER.info('Checking if Atlas page exists...')
-    page = get_page(title)
+    page = get_page(title, True)
 
     if DELETE and page:
         delete_page(page.id)
